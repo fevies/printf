@@ -1,12 +1,28 @@
 #include <unistd.h>
 
 /**
- * _putchar - writes c to stdout
- * @c: prints character
- *
- * Return:  1.
+ * _putchar - print char with stdout
+ * @ch: char to print
+ * Return: Output.
  */
 int _putchar(char c)
 {
-	return (write(1, &c, 1));
-}
+	static int cor;
+	static char buffer[1024];
+
+	if (c == -1)
+	{
+		cor = 0;
+		return (0);
+	}
+	if (c == -2 || cor == 1024)
+	{
+		write(1, buffer, cor);
+		cor = 0;
+	}
+	if (c != -1 && c != -2)
+	{
+		buffer[cor] = c;
+		cor++;
+		return (1);
+	}
