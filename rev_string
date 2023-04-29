@@ -1,0 +1,26 @@
+#include "main.h"
+/**
+ * print_rev_string - Print reverses string.
+ * @args: Arguments
+ * Return: Lenght of the output
+ */
+int print_rev_string(va_list args)
+{
+
+	int c_fun = 0, a = 0;
+	char *s = va_arg(args, char *);
+
+	if (!s)
+		s = "(null)";
+	while (s[a])
+	{
+		a++;
+	}
+	while (i >= 0)
+	{
+		c_fun += _putchar(s[i]);
+		a--;
+	}
+	c_fun--;
+	return (c_fun);
+}
