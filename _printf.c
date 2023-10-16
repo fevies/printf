@@ -1,71 +1,67 @@
-/**
- * _printf - Custom printf function
- * @format: the format specifier
- *
- * Return: the number of characters printed
- */
+#include <stdarg.h>  // for variable arguments
+#include <unistd.h>  // for write function
+
 int _printf(const char *format, ...)
 {
     va_list args;
-    int printed_chars = 0;
+    int count = 0;  // To keep track of the number of characters printed
 
     va_start(args, format);
 
-    while (format && *format)
+    while (*format)
     {
-        if (*format == '%')
+        if (*format != '%')
         {
-            format++; // Move past '%'
-            if (*format == '\0') // Check for trailing '%'
-                break;
-
-            if (*format == 'c') // Character
-            {
-                char c = va_arg(args, int);
-                write(1, &c, 1); // Write the character to stdout
-                printed_chars++;
-            }
-            else if (*format == 's') // String
-            {
-                char *str = va_arg(args, char *);
-                if (str)
-                {
-                    while (*str)
-                    {
-                        write(1, str, 1); // Write each character to stdout
-                        str++;
-                        printed_chars++;
-                    }
-                }
-                else
-                {
-                    write(1, "(null)", 6); // Write "(null)" for NULL string
-                    printed_chars += 6;
-                }
-            }
-            else if (*format == '%') // Percent sign
-            {
-                write(1, "%", 1); // Write '%' to stdout
-                printed_chars++;
-            }
-            else
-            {
-                write(1, "%", 1); // Write '%' for unsupported specifier
-                printed_chars++;
-                write(1, format, 1); // Write the character immediately following '%'
-                printed_chars++;
-            }
+            // If not a '%', simply write the character to stdout
+            write(1, format, 1);
+            count++;
         }
         else
         {
-            write(1, format, 1); // Write non-format characters to stdout
-            printed_chars++;
+            format++;  // Move past the '%'
+
+            if (*format == '\0')
+                break;  // Exit if '%' is the last character in the format string
+
+            switch (*format)
+            {
+                case 'c':
+                {
+                    // Handle character specifier
+                    char c = va_arg(args, int);  // char is promoted to int
+                    write(1, &c, 1);
+                    count++;
+                    break;
+                }
+                case 's':
+                {
+                    // Handle string specifier
+                    const char *str = va_arg(args, const char *);
+                    int len = 0;
+                    while (str[len])
+                        len++;
+                    write(1, str, len);
+                    count += len;
+                    break;
+                }
+                case '%':
+                {
+                    // Handle the '%' specifier
+                    write(1, "%", 1);
+                    count++;
+                    break;
+                }
+                default:
+                    // Handle unsupported format specifiers
+                    write(1, "%", 1);  // Print the '%' character
+                    write(1, format, 1);  // Print the unknown character
+                    count += 2;
+                    break;
+            }
         }
         format++;
     }
 
     va_end(args);
-
-    return printed_chars;
+    return count;
 }
-
