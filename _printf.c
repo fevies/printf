@@ -1,67 +1,45 @@
-#include <stdarg.h>  // for variable arguments
-#include <unistd.h>  // for write function
+#include "main.h"
 
-int _printf(const char *format, ...)
-{
+void print_buffer(char buffer[], int *buff_ind);
+
+int my_printf(const char *format, ...) {
+    int i, printed_chars = 0;
+    int flags, width, precision, size, buff_ind = 0;
     va_list args;
-    int count = 0;  // To keep track of the number of characters printed
+    char buffer[BUFF_SIZE];
+
+    if (format == NULL)
+        return -1;
 
     va_start(args, format);
 
-    while (*format)
-    {
-        if (*format != '%')
-        {
-            // If not a '%', simply write the character to stdout
-            write(1, format, 1);
-            count++;
+    for (i = 0; format && format[i] != '\0'; i++) {
+        if (format[i] != '%') {
+            buffer[buff_ind++] = format[i];
+            if (buff_ind == BUFF_SIZE)
+                print_buffer(buffer, &buff_ind);
+            printed_chars++;
+        } else {
+            print_buffer(buffer, &buff_ind);
+            flags = extract_flags(format, &i);
+            width = obtain_width(format, &i, args);
+            precision = fetch_precision(format, &i, args);
+            size = acquire_size(format, &i);
+            ++i;
+            printed_chars += handle_output(format, &i, args, buffer, flags, width, precision, size);
         }
-        else
-        {
-            format++;  // Move past the '%'
-
-            if (*format == '\0')
-                break;  // Exit if '%' is the last character in the format string
-
-            switch (*format)
-            {
-                case 'c':
-                {
-                    // Handle character specifier
-                    char c = va_arg(args, int);  // char is promoted to int
-                    write(1, &c, 1);
-                    count++;
-                    break;
-                }
-                case 's':
-                {
-                    // Handle string specifier
-                    const char *str = va_arg(args, const char *);
-                    int len = 0;
-                    while (str[len])
-                        len++;
-                    write(1, str, len);
-                    count += len;
-                    break;
-                }
-                case '%':
-                {
-                    // Handle the '%' specifier
-                    write(1, "%", 1);
-                    count++;
-                    break;
-                }
-                default:
-                    // Handle unsupported format specifiers
-                    write(1, "%", 1);  // Print the '%' character
-                    write(1, format, 1);  // Print the unknown character
-                    count += 2;
-                    break;
-            }
-        }
-        format++;
     }
 
+    print_buffer(buffer, &buff_ind);
+
     va_end(args);
-    return count;
+
+    return printed_chars;
+}
+
+void print_buffer(char buffer[], int *buff_ind) {
+    if (*buff_ind > 0)
+        write(1, &buffer[0], *buff_ind);
+
+    *buff_ind = 0;
 }
